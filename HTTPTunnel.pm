@@ -12,7 +12,7 @@ use vars qw($VERSION);
 # modify it under the same terms as Perl itself.                  #
 ###################################################################
 
-$VERSION = '0.3';
+$VERSION = '0.4';
 
 =pod
 
@@ -127,6 +127,10 @@ B<0.3> Fixed the capitalization of the "Proxy-Authorization" header in
 case a fascist proxy did case-sensitive header matching.  Also, fixed
 some mistakes in which \n\r was sent instead of \r\n.
 
+B<0.4> Fixed a bug that would cause an instance of the module to
+assume success on all subsequent connections once it had gotten its
+first successful connection.
+
 =cut
 
 sub new
@@ -185,6 +189,10 @@ sub new
 
 # send it on
     print $new_tunnel $connectmsg;
+
+# make sure our previous successes don't get to our head
+# thanks to Arsen Tevosian for pointing this out
+    undef($success);
 
 # now wait for the response
     while (<$new_tunnel>)

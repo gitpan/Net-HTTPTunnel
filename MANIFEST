@@ -5,3 +5,4 @@ MANIFEST
 Makefile.PL
 README
 draft-luotonen-web-proxy-tunneling-00.txt
+t/use.t
