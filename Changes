@@ -1,1 +1,5 @@
 0.1  Initial release
+
+0.2  Fixed two bugs, one which included an additional carriage
+return with proxy authorization, and one which prevented the
+http-ver option from being recognized.

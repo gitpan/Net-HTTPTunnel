@@ -12,7 +12,7 @@ use vars qw($VERSION);
 # modify it under the same terms as Perl itself.                  #
 ###################################################################
 
-$VERSION = '0.1';
+$VERSION = '0.2';
 
 =pod
 
@@ -119,6 +119,10 @@ modify it under the same terms as Perl itself.
 
 B<0.1> Initial Release
 
+B<0.2> Fixed two bugs, one which included an additional carriage return
+with proxy authorization, and one which prevented the http-ver option from
+being recognized.
+
 =cut
 
 sub new
@@ -133,7 +137,7 @@ sub new
 	}
     }
     
-    $args{'http_ver'} ||= '1.0';
+    $args{'http-ver'} ||= '1.0';
 
     return undef unless (defined($args{'remote-host'}) && defined($args{'remote-port'}) && defined($args{'proxy-host'}) && defined($args{'proxy-port'}));
 
@@ -144,13 +148,13 @@ sub new
 	or return undef;
 
 # the CONNECT method itself
-    $connectmsg = 'CONNECT ' . $args{'remote-host'} . ':' . $args{'remote-port'} . ' HTTP/' . $args{'http_ver'} . "\012\015";
+    $connectmsg = 'CONNECT ' . $args{'remote-host'} . ':' . $args{'remote-port'} . ' HTTP/' . $args{'http-ver'} . "\012\015";
     
 # if we're not 1.0, presumably we're >1.0, in which case we need to send
 # the Host: header.  It doesn't really make sense to use a different version
 # unless the proxy requires it for some reason---once the connection is made,
 # there's no difference at all
-    if ($args{'http_ver'} ne '1.0')
+    if ($args{'http-ver'} ne '1.0')
     {
 	$connectmsg .= 'Host: ' . $args{'proxy-host'} . ':' . $args{'proxy-port'} . "\012\015";
     }
@@ -160,7 +164,7 @@ sub new
     if ($args{'proxy-user'} && $args{'proxy-pass'})
     {
 	$upstr = $args{'proxy-user'} . ':' . $args{'proxy-pass'};
-	$passstr = MIME::Base64::encode($upstr);
+	$passstr = MIME::Base64::encode($upstr, '');
 
 	$connectmsg .= 'Proxy-authorization: Basic ' . $passstr . "\012\015";
     }
