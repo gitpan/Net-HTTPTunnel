@@ -12,7 +12,7 @@ use vars qw($VERSION);
 # modify it under the same terms as Perl itself.                  #
 ###################################################################
 
-$VERSION = '0.2';
+$VERSION = '0.3';
 
 =pod
 
@@ -123,6 +123,10 @@ B<0.2> Fixed two bugs, one which included an additional carriage return
 with proxy authorization, and one which prevented the http-ver option from
 being recognized.
 
+B<0.3> Fixed the capitalization of the "Proxy-Authorization" header in
+case a fascist proxy did case-sensitive header matching.  Also, fixed
+some mistakes in which \n\r was sent instead of \r\n.
+
 =cut
 
 sub new
@@ -148,7 +152,7 @@ sub new
 	or return undef;
 
 # the CONNECT method itself
-    $connectmsg = 'CONNECT ' . $args{'remote-host'} . ':' . $args{'remote-port'} . ' HTTP/' . $args{'http-ver'} . "\012\015";
+    $connectmsg = 'CONNECT ' . $args{'remote-host'} . ':' . $args{'remote-port'} . ' HTTP/' . $args{'http-ver'} . "\015\012";
     
 # if we're not 1.0, presumably we're >1.0, in which case we need to send
 # the Host: header.  It doesn't really make sense to use a different version
@@ -156,7 +160,7 @@ sub new
 # there's no difference at all
     if ($args{'http-ver'} ne '1.0')
     {
-	$connectmsg .= 'Host: ' . $args{'proxy-host'} . ':' . $args{'proxy-port'} . "\012\015";
+	$connectmsg .= 'Host: ' . $args{'proxy-host'} . ':' . $args{'proxy-port'} . "\015\012";
     }
     
 # if we're going to do proxy authentication, we don't even need to wait for the
@@ -166,18 +170,18 @@ sub new
 	$upstr = $args{'proxy-user'} . ':' . $args{'proxy-pass'};
 	$passstr = MIME::Base64::encode($upstr, '');
 
-	$connectmsg .= 'Proxy-authorization: Basic ' . $passstr . "\012\015";
+	$connectmsg .= 'Proxy-Authorization: Basic ' . $passstr . "\015\012";
     }
 
 # if they specify a user agent, we can use one---it's not required by HTTP, but
 # some facist proxies might require one
     if ($args{'user-agent'})
     {
-	$connectmsg .= 'User-agent: ' . $args{'user-agent'} . "\012\015";
+	$connectmsg .= 'User-agent: ' . $args{'user-agent'} . "\015\012";
     }
     
 # the final \r\n to indicate the end of the headers
-    $connectmsg .= "\012\015";
+    $connectmsg .= "\015\012";
 
 # send it on
     print $new_tunnel $connectmsg;

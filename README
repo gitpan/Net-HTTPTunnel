@@ -101,3 +101,8 @@ HISTORY
     return with proxy authorization, and one which prevented the
     http-ver option from being recognized.
 
+    0.3 Fixed the capitalization of the "Proxy-Authorization" header
+    in case a fascist proxy did case-sensitive header matching.
+    Also, fixed some mistakes in which \n\r was sent instead of
+    \r\n.
+
