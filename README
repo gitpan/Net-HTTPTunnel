@@ -105,3 +105,8 @@ HISTORY
     success on all subsequent connections once it had gotten its first
     successful connection.
 
+    0.5 Changed the success test regexp so that "200 OK" is accepted as a
+    successful reply from the proxy, since some report this instead of "200
+    Connection established". Thanks to JoNO for pointing out this
+    discrepancy.
+

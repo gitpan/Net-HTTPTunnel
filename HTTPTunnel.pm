@@ -12,7 +12,7 @@ use vars qw($VERSION);
 # modify it under the same terms as Perl itself.                  #
 ###################################################################
 
-$VERSION = '0.4';
+$VERSION = '0.5';
 
 =pod
 
@@ -131,6 +131,11 @@ B<0.4> Fixed a bug that would cause an instance of the module to
 assume success on all subsequent connections once it had gotten its
 first successful connection.
 
+B<0.5> Changed the success test regexp so that "200 OK" is accepted as a
+successful reply from the proxy, since some report this instead of
+"200 Connection established".  Thanks to JoNO for pointing out this
+discrepancy.
+ 
 =cut
 
 sub new
@@ -139,10 +144,10 @@ sub new
 
     while ($key = shift @_)
     {
-	if ($var = shift @_)
-	{
-	    $args{$key} = $var;
-	}
+        if ($var = shift @_)
+        {
+            $args{$key} = $var;
+        }
     }
     
     $args{'http-ver'} ||= '1.0';
@@ -151,9 +156,9 @@ sub new
 
 # Make a new instance of HTTPTunnel and bless it.
     $new_tunnel = IO::Socket::INET->new( 'PeerAddr' => $args{'proxy-host'},
-					 'PeerPort' => $args{'proxy-port'},
-					 'Proto' => 'tcp' )
-	or return undef;
+                                         'PeerPort' => $args{'proxy-port'},
+                                         'Proto' => 'tcp' )
+        or return undef;
 
 # the CONNECT method itself
     $connectmsg = 'CONNECT ' . $args{'remote-host'} . ':' . $args{'remote-port'} . ' HTTP/' . $args{'http-ver'} . "\015\012";
@@ -164,24 +169,24 @@ sub new
 # there's no difference at all
     if ($args{'http-ver'} ne '1.0')
     {
-	$connectmsg .= 'Host: ' . $args{'proxy-host'} . ':' . $args{'proxy-port'} . "\015\012";
+        $connectmsg .= 'Host: ' . $args{'proxy-host'} . ':' . $args{'proxy-port'} . "\015\012";
     }
     
 # if we're going to do proxy authentication, we don't even need to wait for the
 # 407---just send them the first time
     if ($args{'proxy-user'} && $args{'proxy-pass'})
     {
-	$upstr = $args{'proxy-user'} . ':' . $args{'proxy-pass'};
-	$passstr = MIME::Base64::encode($upstr, '');
+        $upstr = $args{'proxy-user'} . ':' . $args{'proxy-pass'};
+        $passstr = MIME::Base64::encode($upstr, '');
 
-	$connectmsg .= 'Proxy-Authorization: Basic ' . $passstr . "\015\012";
+        $connectmsg .= 'Proxy-Authorization: Basic ' . $passstr . "\015\012";
     }
 
 # if they specify a user agent, we can use one---it's not required by HTTP, but
 # some facist proxies might require one
     if ($args{'user-agent'})
     {
-	$connectmsg .= 'User-agent: ' . $args{'user-agent'} . "\015\012";
+        $connectmsg .= 'User-agent: ' . $args{'user-agent'} . "\015\012";
     }
     
 # the final \r\n to indicate the end of the headers
@@ -198,22 +203,24 @@ sub new
     while (<$new_tunnel>)
     {
 # if we get this, we're successful
-	if (/Connection established/)
-	{
-	    $success = 1;
-	}
+# Thanks to JoNO for pointing out that some proxies
+# return "200 OK" instead of "200 Connection established"
+        if (/^200/)
+        {
+            $success = 1;
+        }
 # a blank line indicates the end of transmission.  This is in
 # case the proxy is sending \r\n (because $ will only eat the \n)
-	elsif (/^.$/)
-	{
-	    last;
-	}
+        elsif (/^.$/)
+        {
+            last;
+        }
 # same as above, but for proxies that only send \n
 # such things shouldn't exist, but better safe than sorry
-	elsif (/^$/)
-	{
-	    last;
-	}
+        elsif (/^$/)
+        {
+            last;
+        }
     }
 
 # if we didn't get connection established, we're screwed
@@ -223,4 +230,3 @@ sub new
     bless $new_tunnel, $whatami;
     return $new_tunnel;
 }
-
