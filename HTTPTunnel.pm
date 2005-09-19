@@ -12,7 +12,7 @@ use vars qw($VERSION);
 # modify it under the same terms as Perl itself.                  #
 ###################################################################
 
-$VERSION = '0.5';
+$VERSION = '0.51';
 
 =pod
 
@@ -135,6 +135,8 @@ B<0.5> Changed the success test regexp so that "200 OK" is accepted as a
 successful reply from the proxy, since some report this instead of
 "200 Connection established".  Thanks to JoNO for pointing out this
 discrepancy.
+
+B<0.51> D'oh.  Broken regexp.
  
 =cut
 
@@ -205,7 +207,7 @@ sub new
 # if we get this, we're successful
 # Thanks to JoNO for pointing out that some proxies
 # return "200 OK" instead of "200 Connection established"
-        if (/^200/)
+        if (/ 200 /)
         {
             $success = 1;
         }

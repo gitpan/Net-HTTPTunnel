@@ -110,3 +110,5 @@ HISTORY
     Connection established". Thanks to JoNO for pointing out this
     discrepancy.
 
+    0.51 D'oh. Broken regexp.
+
